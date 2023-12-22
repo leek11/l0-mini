@@ -38,7 +38,7 @@ TX_DELAY_RANGE = [30, 100]
 AFTER_APPROVE_DELAY_RANGE = [5, 10]
 
 # Процент от баланса токена, который будет использован
-# в случае, если USE_SWAP_BEFORE_BRIDGE = True, при бридже через CoreBridge
+# в случае, если USE_SWAP_BEFORE_BRIDGE = False, при бридже через Stargate / CoreBridge
 # будет браться баланс токена STG / USDT и умножаться на этот коэффициент.
 TOKEN_USE_PERCENTAGE = 0.003
 
@@ -81,7 +81,7 @@ USE_OKX_WITHDRAW = {
     },
     "Moonbeam": {
         "use": False,
-        "amount": [0.01, 0.05],
+        "amount": [0, 0],
         "min-balance": 0.0001
     },
     "Moonriver": {
@@ -353,5 +353,8 @@ STARGATE_TX_COUNT = {
 
 # Количество транзакций на CoreBridge (перед этим идет свап BNB -> USDT через 0x).
 CORE_TX_COUNT = {
-    "BSC-Core": [0, 0]
+    "BSC-Core": {
+        "tx-range": [0, 0],
+        "amount-range": [0, 0]
+    }
 }

@@ -9,7 +9,7 @@ from config import (
     OKX_API_SECRET,
     OKX_API_PASSWORD,
     STARGATE_TX_COUNT,
-    MERKLY_TX_COUNT
+    MERKLY_TX_COUNT, CORE_TX_COUNT
 )
 from modules.database import Database
 from sdk import Client, logger, OKX
@@ -72,13 +72,15 @@ class Warmup:
         src_chain = NAMES_TO_CHAINS[chains[0]]
         dst_chain = NAMES_TO_CHAINS[chains[1]]
 
-        amount_to_use = await Warmup.uniform_bridge_amount(dapp=dapp, action=action, client=client)
+        amount_to_use = await Warmup.uniform_bridge_amount(dapp=dapp, action=action)
+        src_chain_balance = (await client.get_native_balance(chain=src_chain)) / 10 ** 18
 
         if not amount_to_use:
             return None
 
         if src_chain.name in USE_OKX_WITHDRAW and USE_OKX_WITHDRAW[src_chain.name]["use"]:
-            if USE_OKX_WITHDRAW[src_chain.name]["min-balance"] < amount_to_use:
+            if USE_OKX_WITHDRAW[src_chain.name]["min-balance"] >= src_chain_balance:
+
                 amount_to_withdraw = round(
                     random.uniform(*USE_OKX_WITHDRAW[src_chain.name]["amount"]),
                     ROUND_TO
@@ -108,11 +110,6 @@ class Warmup:
         else:
             dapp = CoreBridge(client=client)
 
-            amount_to_use = round(
-                (await client.get_native_balance(chain=src_chain)) / 10 ** 18 * TOKEN_USE_PERCENTAGE,
-                ROUND_TO
-            )
-
             result = await dapp.swap_and_bridge(amount=amount_to_use)
 
         if result:
@@ -120,7 +117,7 @@ class Warmup:
             return True
 
     @staticmethod
-    async def uniform_bridge_amount(dapp, action: str, client: Client, src_chain=BSC):
+    async def uniform_bridge_amount(dapp, action: str):
         if dapp == Stargate:
             return round(
                 random.uniform(*STARGATE_TX_COUNT[action]['amount-range']),
@@ -128,7 +125,7 @@ class Warmup:
             )
         elif dapp == CoreBridge:
             return round(
-                (await client.get_native_balance(chain=src_chain)) / 10 ** 18 * TOKEN_USE_PERCENTAGE,
+                random.uniform(*CORE_TX_COUNT[action]['amount-range']),
                 ROUND_TO
             )
         elif dapp == Merkly:

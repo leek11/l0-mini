@@ -42,7 +42,7 @@ class Database:
                     deposit_address=deposit_address,
                     merkly_tx_count=Database.get_randomized_merkly_tx_counts(),
                     stargate_tx_count=random.randint(*STARGATE_TX_COUNT["Polygon-Kava"]['tx-range']),
-                    core_bridge_tx_count=random.randint(*CORE_TX_COUNT["BSC-Core"])
+                    core_bridge_tx_count=random.randint(*CORE_TX_COUNT["BSC-Core"]['tx-range'])
                 )
 
                 data.append(item)
