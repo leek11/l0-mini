@@ -74,7 +74,7 @@ MERKLY_TX_COUNT = {
         "Harmony": [0, 0]
     },
     "Celo": {
-        "Gnosis": [1, 1],
+        "Gnosis": [0, 0],
         "Linea": [0, 0],
         "BSC": [0, 0]
     },
