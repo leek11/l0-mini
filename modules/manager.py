@@ -1,4 +1,5 @@
 from modules import Database
+from modules.balance_checker import balance_checker
 from modules.warmup import Warmup
 from sdk import logger
 
@@ -15,6 +16,8 @@ class Manager:
                 database.save_database()
             elif module == "2":
                 await Warmup.execute_mode()
+            elif module == "3":
+                await balance_checker()
             else:
                 logger.error(f"Invalid module number: {module}", send_to_tg=False)
 
@@ -34,4 +37,5 @@ start_message = r"""
 
 1. Create database
 2. Warmup (Merkly / Stargate / CoreBridge)
+3. Balance checker
 """

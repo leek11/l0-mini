@@ -2,7 +2,6 @@ import random
 
 from config import (
     USE_MOBILE_PROXY,
-    TOKEN_USE_PERCENTAGE,
     ROUND_TO,
     USE_OKX_WITHDRAW,
     OKX_API_KEY,
@@ -15,7 +14,7 @@ from modules.database import Database
 from sdk import Client, logger, OKX
 from sdk.dapps import Stargate, CoreBridge
 from sdk.dapps.merkly import Merkly
-from sdk.models.chain import BSC, NAMES_TO_CHAINS
+from sdk.models.chain import NAMES_TO_CHAINS
 from sdk.models.data_item import DataItem
 from sdk.utils import change_ip
 
@@ -80,7 +79,6 @@ class Warmup:
 
         if src_chain.name in USE_OKX_WITHDRAW and USE_OKX_WITHDRAW[src_chain.name]["use"]:
             if USE_OKX_WITHDRAW[src_chain.name]["min-balance"] >= src_chain_balance:
-
                 amount_to_withdraw = round(
                     random.uniform(*USE_OKX_WITHDRAW[src_chain.name]["amount"]),
                     ROUND_TO
