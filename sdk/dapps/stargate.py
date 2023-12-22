@@ -1,21 +1,19 @@
 from eth_abi.packed import encode_packed
 
-from config import TX_DELAY_RANGE, GAS_THRESHOLD, GAS_DELAY_RANGE, TOKEN_USE_PERCENTAGE, ROUND_TO, \
-    USE_SWAP_BEFORE_BRIDGE
+from config import TX_DELAY_RANGE, TOKEN_USE_PERCENTAGE, ROUND_TO, USE_SWAP_BEFORE_BRIDGE
 from sdk import Client, logger
 from sdk.constants import STG_TOKEN_CONTRACT_ADDRESS, ZERO_ADDRESS, STG_TOKEN_ABI
-from sdk.dapps import Dapp, ZeroX
-from sdk.decorators import wait, gas_delay
+from sdk.dapps import ZeroX
+from sdk.decorators import wait
 from sdk.models.chain import Chain
 from sdk.models.chain import Polygon, Kava
 from sdk.models.token import ETH_Token, MATIC_Token, STG_Token
-from sdk.utils import read_from_json
 
 
-class Stargate(Dapp):
+class Stargate:
     def __init__(self, client: Client, chain: Chain = Polygon):
-        super().__init__(name="Stargate")
         self.account = client
+        self.name = "Stargate"
 
         if self.account.chain != chain:
             self.account.change_chain(chain=chain)
@@ -26,15 +24,8 @@ class Stargate(Dapp):
         )
 
     async def get_bridge_fee_params(self):
-        data = self.account.w3.to_hex(
-                    encode_packed(
-                        ["uint16", "uint"],
-                        [1, 85000],
-                    )
-                )
-
+        data = self.account.w3.to_hex(encode_packed(["uint16", "uint"], [1, 85000]))
         fee = await self.contract.functions.estimateSendTokensFee(177, False, data).call()
-
         return data, int(fee[0] * 1.01)
 
     @wait(delay_range=TX_DELAY_RANGE)
@@ -79,4 +70,3 @@ class Stargate(Dapp):
             amount_to_bridge = round(stg_balance * TOKEN_USE_PERCENTAGE, ROUND_TO)
 
         return await self.bridge(amount=amount_to_bridge)
-

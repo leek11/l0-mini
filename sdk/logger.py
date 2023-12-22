@@ -3,7 +3,7 @@ from enum import Enum
 import telebot
 from loguru import logger as loguru_logger
 
-from config import TG_TOKEN, TG_IDS
+from config import TG_TOKEN, TG_IDS, USE_TG_BOT
 
 
 class Icons(Enum):
@@ -44,20 +44,21 @@ class CustomLogger:
         if send_to_tg:
             self.telegram_logger(f"{Icons.DEBUG.value} {message}")
 
-    def exception(self, message: str, send_to_tg=True) -> None:
+    def exception(self, message: str) -> None:
         self.loguru_logger.exception(message)
 
     @staticmethod
     def send_message_telegram(bot, text: str):
         try:
-            for tg_id in TG_IDS:
-                bot.send_message(tg_id, text)
+            if USE_TG_BOT:
+                for tg_id in TG_IDS:
+                    bot.send_message(tg_id, text)
         except Exception as e:
             raise Exception(f"Encountered an error when sending telegram message: {e}")
 
     @staticmethod
     def tg_logger(text):
-        bot = telebot.TeleBot(TG_TOKEN, disable_web_page_preview=True)
+        bot = telebot.TeleBot(TG_TOKEN, disable_web_page_preview=True) if USE_TG_BOT else None
         CustomLogger.send_message_telegram(bot, text)
 
 

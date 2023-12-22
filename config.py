@@ -1,147 +1,68 @@
-# токен Telegram бота для отправки сообщений
+##########################################################################
+############################# Telegram logs ##############################
+##########################################################################
+
+# Токен от телеграм бота.
 TG_TOKEN = ""
 
-# ID получателей
+# ID от аккаунтов телеграм, которым нужно отсылать телеграм логи.
 TG_IDS = []
 
-# использование мобильных прокси (True - если да, иначе False)
+# Eсли хотите получать логи в телеграм: True, а если нет: False.
+USE_TG_BOT = False
+
+##########################################################################
+################################## Proxy #################################
+##########################################################################
+
+# Eсли используете мобильные прокси: True и USE_PROXY = True, а если нет: False.
 USE_MOBILE_PROXY = False
 
-# ссылка для смены IP адреса
+# Ссылка на смену ip адреса мобильных прокси.
 PROXY_CHANGE_IP_URL = ""
 
-# api ключ 1INCH (используется в модуле 3)
-INCH_API_KEY = ""
+##########################################################################
+########################### Основные настройки ###########################
+##########################################################################
 
-# api ключ 0x (используется в модуле 2)
+# API ключ 0x.
 ZEROX_API_KEY = ""
 
-# максимальный GWEI, при котором будут отправлятся транзакции (только в модуле 3)
-GAS_THRESHOLD = 15
-
-# время задержки между проверкой текущего GWEI
-GAS_DELAY_RANGE = [3, 5]
-
-# время задержки после отправки любой транзакции, кроме апрувов
-TX_DELAY_RANGE = [30, 50]
-
-# задержка после апрув транзакций
-AFTER_APPROVE_DELAY_RANGE = [2, 4]
-
-# задержка между кошельками (только для модуля 3)
-WALLET_DELAY_RANGE = [120, 240]
-
-# максимальный slippage в процентах (1 = 1%)
+# Максимальный slippage в процентах (1 = 1%).
 MAX_SLIPPAGE = 2
 
-# задержка между HTTP запросами (только для модуля 3)
-REQUEST_SLEEP_TIME_RANGE = 2
+# Время задержки после отправки любой транзакции, кроме апрувов.
+TX_DELAY_RANGE = [30, 100]
 
-# процент от баланса токена, который будет использован (только для модуля 2)
-# в случае, если USE_SWAP_BEFORE_BRIDGE = True, при бридже через Stargate / CoreBridge
-# будет браться баланс токена STG / USDT и умножаться на этот коэффициент
+# Задержка после апрув транзакций.
+AFTER_APPROVE_DELAY_RANGE = [5, 10]
+
+# Процент от баланса токена, который будет использован
+# в случае, если USE_SWAP_BEFORE_BRIDGE = True, при бридже через CoreBridge
+# будет браться баланс токена STG / USDT и умножаться на этот коэффициент.
 TOKEN_USE_PERCENTAGE = 0.003
 
-# использование свапа перед бриджем через Stargate / CoreBridge (True, если использовать)
-# если баланс STG / USDT равен нулю, то свап будет проведен вне зависимости от значения этого параметра
+# Использование свапа перед бриджем через Stargate / CoreBridge (True, если использовать)
+# если баланс STG / USDT равен нулю, то свап будет проведен вне зависимости от значения этого параметра.
 USE_SWAP_BEFORE_BRIDGE = True
 
-# количество знаков после запятой, в случае, если число округляется
+# Количество знаков после запятой, в случае, если число округляется.
 ROUND_TO = 5
 
-# количество транзакций на Merkly
-MERKLY_TX_COUNT = {
-    "BSC": {                # Сеть-источник (BSC)
-        "Gnosis": [0, 0],   # Сеть-получатель №1 (Gnosis) [от, до]
-        "Celo": [0, 0],
-        "Kava": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Scroll": [0, 0],
-        "DFK": [0, 0],
-        "Harmony": [0, 0]
-    },
-    "Polygon": {
-        "Gnosis": [0, 0],
-        "Celo": [0, 0],
-        "BSC": [0, 0],
-        "Kava": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Zora": [0, 0],
-        "Scroll": [0, 0],
-        "DFK": [0, 0],
-        "Harmony": [0, 0]
-    },
-    "Celo": {
-        "Gnosis": [0, 0],
-        "Linea": [0, 0],
-        "BSC": [0, 0]
-    },
-    "Gnosis": {
-        "Celo": [0, 0],
-        "BSC": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Scroll": [0, 0]
-    },
-    "Arbitrum": {
-        "Gnosis": [0, 0],
-        "Celo": [0, 0],
-        "BSC": [0, 0],
-        "Kava": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Zora": [0, 0],
-        "Scroll": [0, 0],
-        "DFK": [0, 0],
-        "Harmony": [0, 0]
-    },
-    "Moonbeam": {
-        "Gnosis": [0, 0],
-        "Celo": [0, 0],
-        "BSC": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Scroll": [0, 0],
-        "DFK": [0, 0],
-        "Harmony": [0, 0]
-    },
-    "Moonriver": {
-        "BSC": [0, 0],
-        "Kava": [0, 0],
-        "Linea": [0, 0],
-        "Base": [0, 0],
-        "Scroll": [0, 0],
-    },
-    "Conflux": {
-        "Celo": [0, 0]
-    }
-}
+##########################################################################
+################################### OKX ##################################
+##########################################################################
 
-# количество транзакций на Stargate (перед этим идет свап MATIC -> STG через 0x)
-STARGATE_TX_COUNT = {
-    "Polygon-Kava": [0, 0]
-}
-
-# количество транзакций на CoreBridge (перед этим идет свап BNB -> USDT через 0x)
-CORE_TX_COUNT = {
-    "BSC-Core": [0, 0]
-}
-
-# кол-во транзакций на прогон одного аккаунта (в модуле 3)
-# считаются только:
-# bridge CELO -> GNOSIS
-# bridge GNOSIS -> CELO
-# остальные транзакции в этот счет не входят
-ANGLE_TX_COUNT = [0, 0]
-
-# OKX
+# API ключ от OKX.
 OKX_API_KEY = ""
+
+# Секрет от API ключа от OKX.
 OKX_API_SECRET = ""
+
+# Пароль от API ключа от OKX.
 OKX_API_PASSWORD = ""
 
-# использование вывода с OKX при бриджах (только в модуле 2)
+# Использование вывода с OKX при бриджах.
 USE_OKX_WITHDRAW = {
     "BSC": {                        # сеть-получатель вывода (источник бриджа)
         "use": False,               # использовать ли вывод, если в данной сети недостаточный баланс (True/False)
@@ -160,12 +81,12 @@ USE_OKX_WITHDRAW = {
     },
     "Moonbeam": {
         "use": False,
-        "amount": [0, 0],
+        "amount": [0.01, 0.05],
         "min-balance": 0.0001
     },
     "Moonriver": {
-        "use": False,
-        "amount": [0, 0],
+        "use": True,
+        "amount": [0.01, 0.05],
         "min-balance": 0.0001
     },
     "Conflux": {
@@ -175,17 +96,15 @@ USE_OKX_WITHDRAW = {
     }
 }
 
-# диапазон USDC для вывода с OKX (только для модуля 3)
-OKX_WITHDRAWAL_AMOUNT_RANGE = [7, 20]
+##########################################################################
+##################### RPC (заполнить для всех сетей) #####################
+##########################################################################
 
-# ОБЯЗАТЕЛЬНО ЗАПОЛНИТЕ ЭТУ RPC
 MAINNET_RPC_URL = "https://rpc.ankr.com/eth"
-
-# rpc (все, что планируются к использованию как сеть-источник должны быть заполнены)
 ARBITRUM_RPC_URL = ""
 OPTIMISM_RPC_URL = ""
 POLYGON_RPC_URL = "https://1rpc.io/matic"
-BSC_RPC_URL = "https://rpc.ankr.com/bsc"
+BSC_RPC_URL = "https://rpc.ankr.com/bsc"  # обязательно поставить приватный анкор
 MOONBEAM_RPC_URL = "https://1rpc.io/glmr"
 DFK_RPC_URL = "https://subnets.avax.network/defi-kingdoms/dfk-chain/rpc"
 HARMONY_RPC_URL = "https://api.harmony.one/"
@@ -199,3 +118,240 @@ SCROLL_RPC_URL = ""
 BASE_RPC_URL = ""
 CONFLUX_RPC_URL = "https://evm.confluxrpc.com"
 ZORA_RPC_URL = ""
+
+##########################################################################
+########################## Количество транзакций #########################
+##########################################################################
+
+# Количество транзакций на Merkly.
+MERKLY_TX_COUNT = {
+    "BSC": {                            # Сеть-источник (BSC)
+        "Gnosis": {                     # сеть-получатель (Gnosis)
+            "tx-range": [0, 0],         # диапазон количества транзакций
+            "amount-range": [0, 0]      # диапазон получаемых токенов в сети-получателе
+        },                              # если amount-range будет 0.5, то в Gnosis придет 0.5 xdai
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Kava": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "DFK": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Harmony": {
+            "tx-range": [0, 0],
+            "amount-range": [0.01, 0.02]
+        }
+    },
+    "Polygon": {
+        "Gnosis": {
+            "tx-range": [0, 0],
+            "amount-range": [0.01, 0.02]
+        },
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Kava": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Zora": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "DFK": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Harmony": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        }
+    },
+    "Celo": {
+        "Gnosis": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        }
+    },
+    "Gnosis": {
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        }
+    },
+    "Arbitrum": {
+        "Gnosis": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Kava": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Zora": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "DFK": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Harmony": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        }
+    },
+    "Moonbeam": {
+        "Gnosis": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "DFK": {
+            "tx-range": [0, 0],
+            "amount-range": [0.0001, 0.001]
+        },
+        "Harmony": {
+            "tx-range": [0, 0],
+            "amount-range": [0.001, 0.001]
+        }
+    },
+    "Moonriver": {
+        "BSC": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Kava": {
+            "tx-range": [0, 0],
+            "amount-range": [0.0001, 0.001]
+        },
+        "Linea": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Base": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+        "Scroll": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        },
+    },
+    "Conflux": {
+        "Celo": {
+            "tx-range": [0, 0],
+            "amount-range": [0, 0]
+        }
+    }
+}
+
+# Количество транзакций на Stargate (перед этим идет свап MATIC -> STG через 0x).
+STARGATE_TX_COUNT = {
+    "Polygon-Kava": {
+        "tx-range": [0, 0],
+        "amount-range": [0.01, 0.05]
+    }
+}
+
+# Количество транзакций на CoreBridge (перед этим идет свап BNB -> USDT через 0x).
+CORE_TX_COUNT = {
+    "BSC-Core": [0, 0]
+}

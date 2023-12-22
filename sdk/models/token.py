@@ -1,11 +1,19 @@
-import json
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Dict
 
-from sdk.constants import POLYGON_AGEUR_CONTRACT_ADDRESS, CELO_AGEUR_CONTRACT_ADDRESS, GNOSIS_AGEUR_CONTRACT_ADDRESS, \
-    AGEUR_CONTRACT_ABI, NATIVE_TOKEN_CONTRACT_ADDRESS, POLYGON_USDC_CONTRACT_ADDRESS, GNOSIS_USDC_CONTRACT_ADDRESS, \
-    USDC_CONTRACT_ABI, L2_ETH_TOKEN_ABI, FIAT_TOKEN_ABI, BSC_USDT_CONTRACT_ADDRESS, STG_TOKEN_CONTRACT_ADDRESS, \
+from sdk.constants import (
+    NATIVE_TOKEN_CONTRACT_ADDRESS,
+    POLYGON_USDC_CONTRACT_ADDRESS,
+    GNOSIS_USDC_CONTRACT_ADDRESS,
+    USDC_CONTRACT_ABI,
+    L2_ETH_TOKEN_ABI,
+    FIAT_TOKEN_ABI,
+    BSC_USDT_CONTRACT_ADDRESS,
+    STG_TOKEN_CONTRACT_ADDRESS,
     STG_TOKEN_ABI
+)
 
 
 @dataclass
@@ -30,8 +38,8 @@ class Token:
 
     def __eq__(self, other):
         return (
-            isinstance(other, Token)
-            and self.chain_to_contract_mapping["ZKERA"] == other.chain_to_contract_mapping["ZKERA"]
+                isinstance(other, Token)
+                and self.chain_to_contract_mapping["ZKERA"] == other.chain_to_contract_mapping["ZKERA"]
         )
 
     def to_wei(self, value: float, decimals: int = None) -> int:
@@ -42,19 +50,6 @@ class Token:
     def from_wei(self, value: int) -> int:
         return value / pow(10, self.decimals)
 
-
-AGEUR_Token = Token(
-    chain_to_contract_mapping={
-        "POLYGON": POLYGON_AGEUR_CONTRACT_ADDRESS,
-        "CELO": CELO_AGEUR_CONTRACT_ADDRESS,
-        "GNOSIS": GNOSIS_AGEUR_CONTRACT_ADDRESS,
-    },
-    abi=AGEUR_CONTRACT_ABI,
-    decimals=18,
-    symbol="agEUR",
-    is_stable_coin=False,
-    is_native_token_mapping={"POLYGON": False, "CELO": False, "GNOSIS": False},
-)
 
 MATIC_Token = Token(
     chain_to_contract_mapping={"Polygon": NATIVE_TOKEN_CONTRACT_ADDRESS},

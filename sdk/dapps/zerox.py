@@ -5,17 +5,16 @@ from web3 import Web3
 
 from config import ZEROX_API_KEY, MAX_SLIPPAGE, TX_DELAY_RANGE
 from sdk.client import Client
-from sdk.dapps import Dapp
 from sdk.decorators import wait
 from sdk.logger import logger
 from sdk.models.chain import Chain
 from sdk.models.token import Token
 
 
-class ZeroX(Dapp):
+class ZeroX:
     def __init__(self, client: Client, chain: Chain):
-        super().__init__(name="0x")
         self.account = client
+        self.name = "0x"
 
         if self.account.chain != chain:
             self.account.change_chain(chain)
@@ -35,7 +34,13 @@ class ZeroX(Dapp):
             'celo': 'celo.',
         }
 
-        url = f'https://{url_chains[self.account.chain.name.lower()]}api.0x.org/swap/v1/quote?buyToken={to_token}&sellToken={from_token}&sellAmount={value}&slippagePercentage={MAX_SLIPPAGE / 100}'
+        url = f'https://{url_chains[self.account.chain.name.lower()]}' \
+              f'api.0x.org/swap/v1/quote?' \
+              f'buyToken={to_token}' \
+              f'&sellToken={from_token}' \
+              f'&sellAmount={value}' \
+              f'&slippagePercentage={MAX_SLIPPAGE / 100}'
+
         headers = {'0x-api-key': ZEROX_API_KEY}
 
         try:
@@ -66,10 +71,12 @@ class ZeroX(Dapp):
                 logger.error(f"[{self.name}] No API key provided")
                 return False
 
-            logger.info(f"[{self.name}] Swapping {amount} {from_token.symbol} -> {to_token.symbol} on {self.account.chain.name}")
+            logger.info(
+                f"[{self.name}] Swapping {amount} {from_token.symbol} -> {to_token.symbol} on {self.account.chain.name}"
+            )
 
             if not amount:
-                amount = self.account.get_token_balance(from_token)
+                amount = await self.account.get_token_balance(from_token)
 
             value = from_token.to_wei(value=amount)
             json_data = await self.get_0x_quote(from_token=from_token, to_token=to_token, value=value)
@@ -93,4 +100,4 @@ class ZeroX(Dapp):
             return False
 
         except Exception as ex:
-            logger.error(f"[{self.name}] Error occured: {ex}")
+            logger.error(f"[{self.name}] Error occurred: {ex}")

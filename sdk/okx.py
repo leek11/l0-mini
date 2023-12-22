@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 from typing import Dict
 
 from ccxt.async_support import okx
-from ccxt.base.errors import AuthenticationError
 from loguru import logger
 
 from sdk import Client
-from sdk.models.chain import Polygon, Chain
 from sdk.constants import (
     OKX_AFTER_ERROR_SLEEP_TIME,
     OKX_ON_FAIL_RETRY_COUNT,
@@ -13,11 +13,12 @@ from sdk.constants import (
     OKX_WAIT_FOR_WITHDRAWAL_FINAL_STATUS_MAX_WAIT_TIME,
     OKX_WAIT_FOR_WITHDRAWAL_RECEIVED_ATTEMPTS,
     OKX_WAIT_FOR_WITHDRAWAL_RECIEVED_SLEEP_TIME,
-    OKX_WITHDRAWAL_FEE,
-    RETRIES, OKX_WITHDRAWAL_CHAIN_TO_DATA,
+    RETRIES,
+    OKX_WITHDRAWAL_CHAIN_TO_DATA
 )
+from sdk.models.chain import Polygon, Chain
 from sdk.models.token import USDC_Token, Token
-from utils import retry_on_fail, sleep_pause
+from sdk.utils import retry_on_fail, sleep_pause
 
 
 class OKX:
@@ -33,76 +34,17 @@ class OKX:
             "apiKey": self._api_key,
             "secret": self._secret,
             "password": self._password,
-            "enableRateLimit": True,
+            "enableRateLimit": True
         }
 
-    async def _get_main_account_balance(self, token) -> int | None:
-        async with self.exchange as exchange:
-            try:
-                data = await exchange.fetch_balance(params={"type": "funding"})
-                okx_main_account_balance = data["total"][token.symbol]
-                return okx_main_account_balance
-            except Exception as e:
-                logger.error(f"[OKX] Failed to get main account balance: {e}")
-                return None
-
-    def _get_withdrawal_id(data: dict) -> str | None:
-        try:
-            return data["info"]["wdId"]
-
-        except Exception as e:
-            logger.error(f"[OKX] Failed to get withdrawal id: {e}")
-            return None
-
-    async def transfer_from_sub_accounts(self, symbol: str = USDC_Token.symbol) -> bool:
-        async with self.exchange as exchange:
-            try:
-                response = await exchange.private_get_users_subaccount_list()
-                sub_accounts = response["data"]
-
-                for sub_acc in sub_accounts:
-                    await self._transfer_from_sub_account(sub_acc["subAcct"], symbol)
-                return True
-            except AuthenticationError:
-                logger.error(f"[OKX] Invalid OK-ACCESS-KEY")
-                return False
-            except Exception as e:
-                logger.error(f"[OKX] Couldn't withdraw from from sub-accounts: {e}")
-                return False
-
-    async def _transfer_from_sub_account(self, name, symbol: str = USDC_Token.symbol) -> bool:
-        async with self.exchange as exchange:
-            try:
-                data = await exchange.private_get_asset_subaccount_balances(params={"subAcct": name, "ccy": symbol})
-                amount = data["data"][0]["availBal"]
-            except Exception as e:
-                logger.error(f"[OKX] Failed to fetch sub-account's balances: {str(e)}")
-                return False
-
-            if amount != "0":
-                await exchange.load_markets()
-                currency = exchange.currency(symbol)
-
-                data = {
-                    "ccy": currency["id"],
-                    "amt": exchange.currency_to_precision(symbol, amount),
-                    "from": "6",
-                    "to": "6",
-                    "type": "2",
-                    "subAcct": name,
-                }
-                try:
-                    await exchange.private_post_asset_transfer(data)
-                    logger.info(
-                        f"[OKX] Withdrew {amount} {symbol} from sub-account with name {name} to main account successfully"
-                    )
-                    return True
-                except Exception as e:
-                    logger.error(f"Couldn't withdraw {symbol} from sub-account with name {name} to main account: {e}")
-                    return False
-
     @retry_on_fail(tries=RETRIES)
-    async def withdraw(self, amount_to_withdraw: float, token: Token | str = USDC_Token, chain: Chain = Polygon, retry_count=0) -> str:
+    async def withdraw(
+            self,
+            amount_to_withdraw: float,
+            token: Token | str = USDC_Token,
+            chain: Chain = Polygon,
+            retry_count=0
+    ) -> str:
         async with self.exchange as exchange:
             try:
                 if type(token) is str:
@@ -145,7 +87,7 @@ class OKX:
                     logger.error(f"[OKX] Error while withdrawing {amount_to_withdraw} {token_symbol}: {error_message}")
 
                 if retry_count < OKX_ON_FAIL_RETRY_COUNT:
-                    logger.info(f"[OKX] Withdrawal unsucessful, waiting for another try")
+                    logger.info(f"[OKX] Withdrawal unsuccessful, waiting for another try")
                     await sleep_pause(delay_range=OKX_AFTER_ERROR_SLEEP_TIME, enable_message=False)
                     return await self.withdraw(
                         retry_count=retry_count + 1,
@@ -205,7 +147,11 @@ class OKX:
             logger.error(f"[OKX] Withdrawal could not be completed")
             return False
 
-        withdrawal_received_status = await self._wait_for_withdrawal_received(initial_client_balance, token=token, chain=chain)
+        withdrawal_received_status = await self._wait_for_withdrawal_received(
+            initial_client_balance,
+            token=token,
+            chain=chain
+        )
 
         if not withdrawal_received_status:
             logger.error(f"[OKX] Withdrawal could not be recieved")

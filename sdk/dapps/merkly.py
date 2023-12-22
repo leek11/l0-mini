@@ -1,24 +1,22 @@
 from eth_abi.packed import encode_packed
 
 from config import TX_DELAY_RANGE
+from sdk import Client, logger
 from sdk.constants import (
     MERKLY_CHAIN_TO_REFUEL_CONTRACT_ADDRESS,
-    MERKLY_REFUEL_ABI, RETRIES
+    MERKLY_REFUEL_ABI,
+    RETRIES
 )
-
-
-from .dapp import Dapp
-from sdk import Client, logger
 from sdk.decorators import wait
 from ..models.chain import Chain
-from ..models.token import Token, ETH_Token
+from ..models.token import ETH_Token
 from ..utils import retry_on_fail
 
 
-class Merkly(Dapp):
+class Merkly:
     def __init__(self, client: Client, chain: Chain):
-        super().__init__(name="Merkly")
         self.account = client
+        self.name = "Merkly"
 
         if self.account.chain != chain:
             self.account.change_chain(chain=chain)
@@ -31,7 +29,12 @@ class Merkly(Dapp):
 
     @retry_on_fail(tries=RETRIES)
     async def get_bridge_fee_params(self, dst_chain_id: int, value: int):
-        data = self.account.w3.to_hex(encode_packed(["uint16", "uint", "uint", "address"], [2, 250000, value, self.account.address]))
+        data = self.account.w3.to_hex(
+            encode_packed(
+                ["uint16", "uint", "uint", "address"],
+                [2, 250000, value, self.account.address]
+            )
+        )
 
         fee = await self.contract.functions.estimateSendFee(dst_chain_id, '0x', data).call()
 
@@ -39,7 +42,8 @@ class Merkly(Dapp):
 
     @wait(delay_range=TX_DELAY_RANGE)
     async def bridge(self, src_chain: Chain, dst_chain: Chain, amount: float) -> bool:
-        logger.info(f"[{self.name}] Bridging {amount} {src_chain.coin_symbol} from {src_chain.name} to {dst_chain.name}")
+        logger.info(
+            f"[{self.name}] Bridging {amount} {dst_chain.coin_symbol} from {src_chain.name} to {dst_chain.name}")
 
         balance = ETH_Token.from_wei(await self.account.get_native_balance(chain=src_chain))
 
@@ -63,7 +67,9 @@ class Merkly(Dapp):
                 return await self.account.verify_tx(tx_hash=tx_hash)
         except Exception as e:
             if "dstNativeAmt too large" in str(e):
-                logger.error(f"[{self.name}] Amount to bridge exceeds max possible value for {src_chain.name}-{dst_chain.name}")
+                logger.error(
+                    f"[{self.name}] Amount to bridge exceeds max possible value for {src_chain.name}-{dst_chain.name}"
+                )
             else:
                 logger.error(f"[{self.name}] Exception in bridge function: {e}")
             return False

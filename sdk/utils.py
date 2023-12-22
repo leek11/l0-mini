@@ -6,11 +6,10 @@ from typing import List
 
 import aiohttp
 from tqdm import tqdm
-from web3 import AsyncWeb3
 
 from config import PROXY_CHANGE_IP_URL
 from sdk.logger import logger
-from sdk.models.chain import EthMainnet
+
 
 async def change_ip() -> None:
     async with aiohttp.ClientSession() as session:
@@ -21,6 +20,7 @@ async def change_ip() -> None:
             else:
                 logger.warning(f"[PROXY] Couldn't change ip address")
                 return False
+
 
 def read_from_txt(file_path):
     try:
@@ -59,7 +59,10 @@ async def sleep_pause(delay_range: List[int], enable_message: bool = True, enabl
         await asyncio.sleep(delay=delay)
 
 
-def retry_on_fail(tries: int, retry_delay: List[int] = [5, 10]):
+def retry_on_fail(tries: int, retry_delay=None):
+    if retry_delay is None:
+        retry_delay = [5, 10]
+
     def decorator(func):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -74,48 +77,3 @@ def retry_on_fail(tries: int, retry_delay: List[int] = [5, 10]):
         return wrapper
 
     return decorator
-
-
-async def get_eth_gas_fee(chain=EthMainnet):
-    w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(chain.rpc))
-    return await w3.eth.gas_price
-
-
-def greeting() -> None:
-    logger.success(
-        r"""
-
-                                  ^Y                  
-                                 ~&@7                
-                      75~:.     !@&~&:       , .      
-                      .&&PYY7^.7@@# J#   .^7JPB^      
-                       ^@&Y:^?Y&@@P  GBB&@@GP&~       
-                        7@@&?  :&@J  G@@&Y.~#^        
-                     .:~?&#&@&? !@! B@G~  !&:         
-                :75PPY?!^. .:?GG~P!5P~^!YG@@GJ~.      
-                .~YG#&&##B#BGPJ?J??J?J5GBBBB##&#B5!.  
-                    .^?P&@BJ!^^5G~G^5GJ^. .:!?Y5P57:\  
-                       .#?  ^P@#.:@J !&@@#&J~^.       
-                      :#7.J&@@#. !@@~  !&@@5          
-                     ^&GP@@&BG#. J@@@5?~:?&@7         
-                    :BGJ7^..  GG P@@J.:!JY5&@:        
-                    .         .&7B@?      .~YJ        
-                              ^&@7                   
-                                ?!                  
-
-               __    _ __                        __                  
-   _______  __/ /_  (_) /  _   __   ____  ____ _/ /______  ____  ___ 
-  / ___/ / / / __ \/ / /  | | / /  /_  / / __ `/ //_/ __ \/ __ \/ _ \
- (__  ) /_/ / /_/ / / /   | |/ /    / /_/ /_/ / ,< / /_/ / / / /  __/   
-/____/\__, /_.___/_/_/    |___/    /___/\__,_/_/|_|\____/_/ /_/\___/ 
-     /____/      
-                                              """
-    , send_to_tg=False)
-
-
-def menu_message():
-    print(
-        r"""
-1. Create database
-2. Warmup (Merkly / Stargate / CoreBridge)
-""")

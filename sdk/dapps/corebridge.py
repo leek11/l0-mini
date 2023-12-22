@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from config import TX_DELAY_RANGE, USE_SWAP_BEFORE_BRIDGE, ROUND_TO, TOKEN_USE_PERCENTAGE
 from sdk import Client, logger
-from sdk.constants import CORE_BRIDGE_CONTRACT_ADDRESS, CORE_BRIDGE_ABI, MAX_LEFT_TOKEN_PERCENTAGE
-from sdk.dapps import Dapp, ZeroX
+from sdk.constants import CORE_BRIDGE_CONTRACT_ADDRESS, CORE_BRIDGE_ABI
+from sdk.dapps import ZeroX
 from sdk.decorators import wait
 from sdk.models.chain import Chain, BSC
 from sdk.models.token import USDT_Token, BNB_Token
 
 
-class CoreBridge(Dapp):
+class CoreBridge:
     def __init__(self, client: Client, chain: Chain = BSC):
-        super().__init__(name="CoreBridge")
+        self.name = "CoreBridge"
         self.account = client
 
         if self.account.chain != chain:
@@ -33,7 +35,7 @@ class CoreBridge(Dapp):
 
             logger.info(f'[{self.name}] Bridging {amount} USDT from BSC to Core')
 
-            data_args=(
+            data_args = (
                 USDT_Token.chain_to_contract_mapping["BSC"],
                 value,
                 self.account.address,
@@ -41,15 +43,8 @@ class CoreBridge(Dapp):
                 '0x'
             )
 
-            fee_args = (
-                True,
-                '0x'
-            )
-
-            data = self.bridge_contract.encodeABI(
-                'bridge',
-                args=data_args
-            )
+            fee_args = (True, '0x')
+            data = self.bridge_contract.encodeABI('bridge', args=data_args)
 
             native_fee: list = await self.bridge_contract.functions.estimateBridgeFee(*fee_args).call()
             tx = await self.account.send_transaction(to=CORE_BRIDGE_CONTRACT_ADDRESS, data=data, value=native_fee[0])

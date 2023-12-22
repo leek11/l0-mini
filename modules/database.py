@@ -4,8 +4,7 @@ import random
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 
-from config import USE_MOBILE_PROXY, STARGATE_TX_COUNT, CORE_TX_COUNT, ANGLE_TX_COUNT, \
-    MERKLY_TX_COUNT
+from config import USE_MOBILE_PROXY, STARGATE_TX_COUNT, CORE_TX_COUNT, MERKLY_TX_COUNT
 from sdk import logger, Client
 from sdk.constants import PRIVATE_KEYS_PATH, PROXIES_PATH, DEPOSIT_ADDRESSES_PATH, DATABASE_PATH
 from sdk.models.data_item import DataItem
@@ -30,25 +29,25 @@ class Database:
         if USE_MOBILE_PROXY:
             proxies = proxies * len(private_keys)
 
-        for pk, proxy, addrs in itertools.zip_longest(private_keys, proxies, deposit_addresses, fillvalue=None):
+        for private_key, proxy, deposit_address in itertools.zip_longest(
+                private_keys, proxies, deposit_addresses, fillvalue=None
+        ):
             try:
-                temp_client = Client(private_key=pk, proxy=proxy)
+                temp_client = Client(private_key=private_key, proxy=proxy)
 
-                tx_count = random.randint(*ANGLE_TX_COUNT)
                 item = DataItem(
-                    private_key=pk,
+                    private_key=private_key,
                     address=temp_client.address,
                     proxy=proxy,
-                    deposit_address=addrs,
+                    deposit_address=deposit_address,
                     merkly_tx_count=Database.get_randomized_merkly_tx_counts(),
-                    stargate_tx_count=random.randint(*STARGATE_TX_COUNT["Polygon-Kava"]),
-                    core_bridge_tx_count=random.randint(*CORE_TX_COUNT["BSC-Core"]),
-                    angle_tx_count=tx_count
+                    stargate_tx_count=random.randint(*STARGATE_TX_COUNT["Polygon-Kava"]['tx-range']),
+                    core_bridge_tx_count=random.randint(*CORE_TX_COUNT["BSC-Core"])
                 )
 
                 data.append(item)
             except Exception as e:
-                logger.error(f"[Database] {e}")
+                logger.exception(f"[Database] {e}")
 
         logger.success(f"[Database] Created successfully", send_to_tg=False)
         return Database(data=data)
@@ -78,7 +77,12 @@ class Database:
             item.pop("address")
 
             account = Client(**account_data)
-            data_item = DataItem(private_key=account.private_key, address=account.address, proxy=account_data["proxy"], **item)
+            data_item = DataItem(
+                private_key=account.private_key,
+                address=account.address,
+                proxy=account_data["proxy"],
+                **item
+            )
             data.append(data_item)
 
         return cls(data=data)
@@ -146,74 +150,74 @@ class Database:
             self.save_database()
         else:
             logger.error(f"[Database] Invalid item index: {item_index}")
-            
+
     @staticmethod
     def get_randomized_merkly_tx_counts():
         return {
             "BSC": {
-                "Gnosis": random.randint(*MERKLY_TX_COUNT["BSC"]["Gnosis"]),
-                "Celo": random.randint(*MERKLY_TX_COUNT["BSC"]["Celo"]),
-                "Kava": random.randint(*MERKLY_TX_COUNT["BSC"]["Kava"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["BSC"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["BSC"]["Base"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["BSC"]["Scroll"]),
-                "DFK": random.randint(*MERKLY_TX_COUNT["BSC"]["DFK"]),
-                "Harmony": random.randint(*MERKLY_TX_COUNT["BSC"]["Harmony"])
+                "Gnosis": random.randint(*MERKLY_TX_COUNT["BSC"]["Gnosis"]["tx-range"]),
+                "Celo": random.randint(*MERKLY_TX_COUNT["BSC"]["Celo"]["tx-range"]),
+                "Kava": random.randint(*MERKLY_TX_COUNT["BSC"]["Kava"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["BSC"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["BSC"]["Base"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["BSC"]["Scroll"]["tx-range"]),
+                "DFK": random.randint(*MERKLY_TX_COUNT["BSC"]["DFK"]["tx-range"]),
+                "Harmony": random.randint(*MERKLY_TX_COUNT["BSC"]["Harmony"]["tx-range"])
             },
             "Polygon": {
-                "Gnosis": random.randint(*MERKLY_TX_COUNT["Polygon"]["Gnosis"]),
-                "Celo": random.randint(*MERKLY_TX_COUNT["Polygon"]["Celo"]),
-                "BSC": random.randint(*MERKLY_TX_COUNT["Polygon"]["BSC"]),
-                "Kava": random.randint(*MERKLY_TX_COUNT["Polygon"]["Kava"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Polygon"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["Polygon"]["Base"]),
-                "Zora": random.randint(*MERKLY_TX_COUNT["Polygon"]["Zora"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["Polygon"]["Scroll"]),
-                "DFK": random.randint(*MERKLY_TX_COUNT["Polygon"]["DFK"]),
-                "Harmony": random.randint(*MERKLY_TX_COUNT["Polygon"]["Harmony"]),
+                "Gnosis": random.randint(*MERKLY_TX_COUNT["Polygon"]["Gnosis"]["tx-range"]),
+                "Celo": random.randint(*MERKLY_TX_COUNT["Polygon"]["Celo"]["tx-range"]),
+                "BSC": random.randint(*MERKLY_TX_COUNT["Polygon"]["BSC"]["tx-range"]),
+                "Kava": random.randint(*MERKLY_TX_COUNT["Polygon"]["Kava"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Polygon"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["Polygon"]["Base"]["tx-range"]),
+                "Zora": random.randint(*MERKLY_TX_COUNT["Polygon"]["Zora"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["Polygon"]["Scroll"]["tx-range"]),
+                "DFK": random.randint(*MERKLY_TX_COUNT["Polygon"]["DFK"]["tx-range"]),
+                "Harmony": random.randint(*MERKLY_TX_COUNT["Polygon"]["Harmony"]["tx-range"]),
             },
             "Celo": {
-                "Gnosis": random.randint(*MERKLY_TX_COUNT["Celo"]["Gnosis"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Celo"]["Linea"]),
-                "BSC": random.randint(*MERKLY_TX_COUNT["Celo"]["BSC"])
+                "Gnosis": random.randint(*MERKLY_TX_COUNT["Celo"]["Gnosis"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Celo"]["Linea"]["tx-range"]),
+                "BSC": random.randint(*MERKLY_TX_COUNT["Celo"]["BSC"]["tx-range"])
             },
             "Gnosis": {
-                "Celo": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Celo"]),
-                "BSC": random.randint(*MERKLY_TX_COUNT["Gnosis"]["BSC"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Base"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Scroll"])
+                "Celo": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Celo"]["tx-range"]),
+                "BSC": random.randint(*MERKLY_TX_COUNT["Gnosis"]["BSC"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Base"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["Gnosis"]["Scroll"]["tx-range"])
             },
             "Arbitrum": {
-                "Gnosis": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Gnosis"]),
-                "Celo": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Celo"]),
-                "BSC": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["BSC"]),
-                "Kava": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Kava"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Base"]),
-                "Zora": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Zora"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Scroll"]),
-                "DFK": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["DFK"]),
-                "Harmony": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Harmony"])
+                "Gnosis": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Gnosis"]["tx-range"]),
+                "Celo": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Celo"]["tx-range"]),
+                "BSC": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["BSC"]["tx-range"]),
+                "Kava": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Kava"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Base"]["tx-range"]),
+                "Zora": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Zora"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Scroll"]["tx-range"]),
+                "DFK": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["DFK"]["tx-range"]),
+                "Harmony": random.randint(*MERKLY_TX_COUNT["Arbitrum"]["Harmony"]["tx-range"])
             },
             "Moonbeam": {
-                "Gnosis": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Gnosis"]),
-                "Celo": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Celo"]),
-                "BSC": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["BSC"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Base"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Scroll"]),
-                "DFK": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["DFK"]),
-                "Harmony": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Harmony"])
+                "Gnosis": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Gnosis"]["tx-range"]),
+                "Celo": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Celo"]["tx-range"]),
+                "BSC": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["BSC"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Base"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Scroll"]["tx-range"]),
+                "DFK": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["DFK"]["tx-range"]),
+                "Harmony": random.randint(*MERKLY_TX_COUNT["Moonbeam"]["Harmony"]["tx-range"])
             },
             "Moonriver": {
-                "BSC": random.randint(*MERKLY_TX_COUNT["Moonriver"]["BSC"]),
-                "Kava": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Kava"]),
-                "Linea": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Linea"]),
-                "Base": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Base"]),
-                "Scroll": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Scroll"])
+                "BSC": random.randint(*MERKLY_TX_COUNT["Moonriver"]["BSC"]["tx-range"]),
+                "Kava": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Kava"]["tx-range"]),
+                "Linea": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Linea"]["tx-range"]),
+                "Base": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Base"]["tx-range"]),
+                "Scroll": random.randint(*MERKLY_TX_COUNT["Moonriver"]["Scroll"]["tx-range"])
             },
             "Conflux": {
-                "Celo": random.randint(*MERKLY_TX_COUNT["Conflux"]["Celo"])
+                "Celo": random.randint(*MERKLY_TX_COUNT["Conflux"]["Celo"]["tx-range"])
             }
         }

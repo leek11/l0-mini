@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import random
 from dataclasses import dataclass
 
-from sdk.dapps import Stargate, CoreBridge, Dapp
+from sdk.dapps import Stargate, CoreBridge
 from sdk.dapps.merkly import Merkly
 from sdk.models.chain import Chain
 
@@ -15,7 +17,6 @@ class DataItem:
     merkly_tx_count: dict[str, dict[str, int]]
     stargate_tx_count: int
     core_bridge_tx_count: int
-    angle_tx_count: int
     chain_with_funds: Chain | None = None,
     warmup_started: bool = False
     warmup_finished: bool = False
@@ -26,7 +27,7 @@ class DataItem:
     polygon_to_usdc_swapped: bool = False
     sent_to_okx: bool = False
 
-    def get_random_warmup_action(self) -> tuple[str, Dapp] | tuple[None, None]:
+    def get_random_warmup_action(self):
         dapps_and_actions = []
 
         if self.stargate_tx_count > 0:
@@ -42,9 +43,7 @@ class DataItem:
         for key, value in self.merkly_tx_count.items():
             for chain, count in value.items():
                 if count > 0:
-                    dapps_and_actions.append((
-                        f"{key}-{chain}", Merkly
-                    ))
+                    dapps_and_actions.append((f"{key}-{chain}", Merkly))
 
         if not dapps_and_actions:
             return None, None
@@ -65,10 +64,7 @@ class DataItem:
     def get_tx_count(self):
         total_transactions = 0
 
-        total_transactions += (
-            self.stargate_tx_count +
-            self.core_bridge_tx_count
-        )
+        total_transactions += self.stargate_tx_count + self.core_bridge_tx_count
 
         for key, chains in self.merkly_tx_count.items():
             for chain, value in chains.items():

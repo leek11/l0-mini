@@ -4,8 +4,7 @@ from modules import Manager
 
 
 async def main():
-    m = Manager()
-    await m.run_module()
+    await Manager.run_module()
 
 
 if __name__ == "__main__":

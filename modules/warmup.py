@@ -1,12 +1,21 @@
 import random
 
-from config import USE_MOBILE_PROXY, TOKEN_USE_PERCENTAGE, ROUND_TO, USE_OKX_WITHDRAW, OKX_API_KEY, OKX_API_SECRET, \
-    OKX_API_PASSWORD
+from config import (
+    USE_MOBILE_PROXY,
+    TOKEN_USE_PERCENTAGE,
+    ROUND_TO,
+    USE_OKX_WITHDRAW,
+    OKX_API_KEY,
+    OKX_API_SECRET,
+    OKX_API_PASSWORD,
+    STARGATE_TX_COUNT,
+    MERKLY_TX_COUNT
+)
 from modules.database import Database
 from sdk import Client, logger, OKX
 from sdk.dapps import Stargate, CoreBridge
 from sdk.dapps.merkly import Merkly
-from sdk.models.chain import Moonbeam, Moonriver, DFK, Harmony, Celo, Kava, Polygon, BSC, CoreDAO, NAMES_TO_CHAINS
+from sdk.models.chain import BSC, NAMES_TO_CHAINS
 from sdk.models.data_item import DataItem
 from sdk.utils import change_ip
 
@@ -14,14 +23,14 @@ from sdk.utils import change_ip
 class Warmup:
     @staticmethod
     async def execute_mode():
-        db = Database.read_from_json()
+        database = Database.read_from_json()
 
         while True:
             try:
                 if USE_MOBILE_PROXY:
                     await change_ip()
 
-                data_item, index = db.get_random_data_item()
+                data_item, index = database.get_random_data_item()
 
                 if not data_item:
                     break
@@ -35,9 +44,9 @@ class Warmup:
                 action, dapp = data_item.get_random_warmup_action()
 
                 if not action:
-                    if db.delete_item_if_finished(data_item=data_item):
+                    if database.delete_item_if_finished(data_item=data_item):
                         logger.warning(f"[Warmup] No actions left for this wallet")
-                        db.save_database()
+                        database.save_database()
                     continue
 
                 if await Warmup.execute_warmup_action(
@@ -46,27 +55,30 @@ class Warmup:
                         dapp=dapp,
                         client=client
                 ):
-                    db.delete_item_if_finished(data_item=data_item)
-                    db.save_database()
+                    database.delete_item_if_finished(data_item=data_item)
+                    database.save_database()
             except Exception as ex:
                 logger.exception(f"[Warmup] Error occurred: {ex}")
         logger.success(f"[Warmup] Warmup ended")
 
     @staticmethod
     async def execute_warmup_action(
-        item: DataItem,
-        action: str,
-        dapp,
-        client: Client
+            item: DataItem,
+            action: str,
+            dapp,
+            client: Client
     ):
         chains = action.split('-')
         src_chain = NAMES_TO_CHAINS[chains[0]]
         dst_chain = NAMES_TO_CHAINS[chains[1]]
 
-        onchain_balance = await client.get_native_balance(chain=src_chain)
+        amount_to_use = await Warmup.uniform_bridge_amount(dapp=dapp, action=action, client=client)
 
-        if USE_OKX_WITHDRAW[src_chain.name]["use"]:
-            if USE_OKX_WITHDRAW[src_chain.name]["min-balance"] > onchain_balance:
+        if not amount_to_use:
+            return None
+
+        if src_chain.name in USE_OKX_WITHDRAW and USE_OKX_WITHDRAW[src_chain.name]["use"]:
+            if USE_OKX_WITHDRAW[src_chain.name]["min-balance"] < amount_to_use:
                 amount_to_withdraw = round(
                     random.uniform(*USE_OKX_WITHDRAW[src_chain.name]["amount"]),
                     ROUND_TO
@@ -85,27 +97,45 @@ class Warmup:
                     chain=src_chain
                 )
 
-                onchain_balance = await client.get_native_balance(chain=src_chain)
-
-        amount = round(
-            onchain_balance / 10 ** 18 * TOKEN_USE_PERCENTAGE,
-            ROUND_TO
-        )
-
         if dapp == Merkly:
             dapp = Merkly(client=client, chain=src_chain)
-            result = await dapp.bridge(src_chain=src_chain, dst_chain=dst_chain, amount=amount)
+            result = await dapp.bridge(src_chain=src_chain, dst_chain=dst_chain, amount=amount_to_use)
+
         elif dapp == Stargate:
             dapp = Stargate(client=client)
-            result = await dapp.swap_and_bridge(amount=amount)
+            result = await dapp.swap_and_bridge(amount=amount_to_use)
+
         else:
             dapp = CoreBridge(client=client)
-            result = await dapp.swap_and_bridge(amount=amount)
+
+            amount_to_use = round(
+                (await client.get_native_balance(chain=src_chain)) / 10 ** 18 * TOKEN_USE_PERCENTAGE,
+                ROUND_TO
+            )
+
+            result = await dapp.swap_and_bridge(amount=amount_to_use)
 
         if result:
-            item.decrease_action_count(
-                action=action, dapp=dapp.name
-            )
+            item.decrease_action_count(action=action, dapp=dapp.name)
             return True
 
-
+    @staticmethod
+    async def uniform_bridge_amount(dapp, action: str, client: Client, src_chain=BSC):
+        if dapp == Stargate:
+            return round(
+                random.uniform(*STARGATE_TX_COUNT[action]['amount-range']),
+                ROUND_TO
+            )
+        elif dapp == CoreBridge:
+            return round(
+                (await client.get_native_balance(chain=src_chain)) / 10 ** 18 * TOKEN_USE_PERCENTAGE,
+                ROUND_TO
+            )
+        elif dapp == Merkly:
+            chains = action.split('-')
+            return round(
+                random.uniform(*MERKLY_TX_COUNT[chains[0]][chains[1]]['amount-range']),
+                ROUND_TO
+            )
+        else:
+            return None
